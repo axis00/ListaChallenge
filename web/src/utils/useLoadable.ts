@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-function useLoadable<T>(fetchData: () => Promise<T>, dependencies = []): [T | undefined, boolean] {
+function useLoadable<T>(fetchData: () => Promise<T>, dependencies: unknown[] = []): [T | undefined, boolean] {
   const [data, setData] = useState<T>();
   const [loading, setLoading] = useState(false);
 

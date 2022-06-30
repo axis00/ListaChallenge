@@ -1,43 +1,37 @@
 import { useMemo } from 'react';
-import { Center, Container, Paper } from '@mantine/core';
 import Robot from 'lib/core/Robot';
 
-import useLoadable from './utils/useLoadble';
+import useLoadable from './utils/useLoadable';
 import LocalRobotRepository from './data/LocalRobotRepository';
-import RobotListItemLoader from './components/RobotListItemLoader';
-import RobotListItem from './components/RobotListItem';
-import RobotDTO from 'lib/dto/RobotDTO';
+import ServiceContext, { ServiceContextType } from './serviceContext';
+import IRepository from 'lib/core/IRepository';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Create from './Create';
+import ListRobots from './ListRobots';
 
 function App() {
-  const [robots, isRobotsLoading] = useLoadable<Robot[]>(async () => new LocalRobotRepository().getMany());
+  const [robotRepository, isRobotRepositoryLoading] = useLoadable<IRepository<Robot>>(async () => {
+    const repo = new LocalRobotRepository();
+    await repo.init();
+    
+    return repo;
+  });
 
-  const loader = useMemo(
-    () => Array(5).fill(null).map(() => (
-      <Container my={20}>
-        <RobotListItemLoader />
-      </Container>
-    )),
-    [],
-  );
+  const services = useMemo<ServiceContextType>(() => ({
+    robotRepository,
+  }), [robotRepository]);
 
-  const list = useMemo(
-    () => robots?.map((r) => (
-      <Container my={20} key={r.id}>
-        <RobotListItem robot={RobotDTO.fromDomainObject(r).toSerializable()}/>
-      </Container>
-    )),
-    [robots]
-  )
+  if (isRobotRepositoryLoading) return <div>Loading...</div>;
 
   return (
-    <Container fluid>
-      <Center p={10}>
-        <Paper shadow="lg" p={10} radius="lg">
-          {isRobotsLoading ? loader : list}
-        </Paper>
-      </Center>
-    </Container>
-    
+    <ServiceContext.Provider value={services}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<ListRobots />} />
+          <Route path="create" element={<Create />} />
+        </Routes>
+      </BrowserRouter>
+    </ServiceContext.Provider>
   );
 }
 
