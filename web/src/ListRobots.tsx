@@ -3,12 +3,12 @@ import { Container, Center, Paper, Button, Box } from "@mantine/core";
 import { range } from "lodash";
 import RobotDTO from "lib/dto/RobotDTO";
 import Robot from "lib/core/Robot";
+import { Link } from "react-router-dom";
 
 import RobotListItem from "./components/RobotListItem";
 import RobotListItemLoader from "./components/RobotListItemLoader";
 import useLoadable from "./utils/useLoadable";
 import { useService } from "./serviceContext";
-import { Link } from "react-router-dom";
 
 const ListRobots: React.FC = () => {
   const { robotRepository } = useService();
@@ -48,12 +48,12 @@ const ListRobots: React.FC = () => {
   return (
     <Container p={50}>
       <Center p={10}>
-        <Paper shadow="lg" p={10} radius="lg">
+        <Paper shadow="lg" p={10} radius="lg" style={{ minWidth: 400 }}>
           {isRobotsLoading ? loader : list}
         </Paper>
       </Center>
     </Container>
-  )
-}
+  );
+};
 
 export default ListRobots;
