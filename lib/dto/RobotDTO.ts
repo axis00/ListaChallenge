@@ -40,6 +40,7 @@ class RobotDTO implements IDataTransferObject<Robot> {
       name: this.name,
       purpose: this.purpose,
       tags: this.tags.map((t) => t.toDomainObject()),
+      avatar: this.avatar,
     })
   }
 

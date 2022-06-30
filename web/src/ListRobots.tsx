@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { Container, Center, Paper, Button } from "@mantine/core";
+import React, { useMemo } from "react";
+import { Container, Center, Paper, Button, Box } from "@mantine/core";
 import { range } from "lodash";
 import RobotDTO from "lib/dto/RobotDTO";
 import Robot from "lib/core/Robot";
@@ -10,7 +10,7 @@ import useLoadable from "./utils/useLoadable";
 import { useService } from "./serviceContext";
 import { Link } from "react-router-dom";
 
-function ListRobots() {
+const ListRobots: React.FC = () => {
   const { robotRepository } = useService();
 
   const [robots, isRobotsLoading] = useLoadable<Robot[]>(async () => {
@@ -33,9 +33,9 @@ function ListRobots() {
   const list = useMemo(() => (
     <>
       {robots?.map((r) => (
-        <Container my={20} key={r.id}>
+        <Box my={20} key={r.id} component={Link} to={`/${r.id}`}>
           <RobotListItem robot={RobotDTO.fromDomainObject(r).toSerializable()}/>
-        </Container>
+        </Box>
       ))}
       <Container my={20}>
         <Center>
@@ -46,7 +46,7 @@ function ListRobots() {
   ), [robots]);
 
   return (
-    <Container fluid>
+    <Container p={50}>
       <Center p={10}>
         <Paper shadow="lg" p={10} radius="lg">
           {isRobotsLoading ? loader : list}

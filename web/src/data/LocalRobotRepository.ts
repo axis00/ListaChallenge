@@ -1,8 +1,6 @@
 import IRepository from "lib/core/IRepository";
 import Robot from "lib/core/Robot";
-import Tag from "lib/core/Tag";
 import RobotDTO from "lib/dto/RobotDTO";
-import { map } from "lodash";
 import initDB from "./db";
 
 class LocalRobotRepository implements IRepository<Robot> {
@@ -13,20 +11,24 @@ class LocalRobotRepository implements IRepository<Robot> {
   }
 
   async getMany(): Promise<Robot[]> {
-    return [
-      Robot.create({
-        id: '1',
-        name: 'ButterWorth',
-        purpose: 'Pass Butter',
-        avatar: 'https://avatars.dicebear.com/api/bottts/4324.svg',
-        tags: [
-          Tag.create({
-            id: '1',
-            name: 'Rick'
-          })
-        ],
-      })
-    ]
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(Error('NO_DATABASE'));
+        return;
+      }
+      const transaction = this.db.transaction(['robots'], 'readonly');
+      const robotRequest = transaction.objectStore('robots').getAll();
+
+      robotRequest.onsuccess = () => {
+        resolve(robotRequest.result.map(
+          (r) => RobotDTO.fromSerializable(r).toDomainObject()
+        ))
+      }
+
+      robotRequest.onerror = () => {
+        reject(Error('Failed to read robots'));
+      }
+    })
   }
   create(e: Robot): Promise<Robot> {
     return new Promise((resolve, reject) => {
@@ -36,11 +38,8 @@ class LocalRobotRepository implements IRepository<Robot> {
       }
       const transaction = this.db.transaction(['robots'], 'readwrite');
       const serializableRobot = RobotDTO.fromDomainObject(e).toSerializable();
-      const data = {
-        ...serializableRobot,
-        tags: map(serializableRobot.tags, 'id'),
-      }
-      const addRobotRequest = transaction.objectStore('robots').add(data);
+
+      const addRobotRequest = transaction.objectStore('robots').add(serializableRobot);
 
       addRobotRequest.onsuccess = () => {
         resolve(e);
@@ -49,16 +48,65 @@ class LocalRobotRepository implements IRepository<Robot> {
       addRobotRequest.onerror = () => {
         reject(Error('FAILED_TO_CREATE_ROBOT'))
       }
+
+      transaction.commit();
     });
   }
+
   get(id: string): Promise<Robot> {
-    throw new Error("Method not implemented.");
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(Error('NO_DATABASE'));
+        return;
+      }
+      const transaction = this.db.transaction(['robots'], 'readonly');
+      const robotRequest = transaction.objectStore('robots').get(id);
+
+      robotRequest.onsuccess = () => {
+        resolve(RobotDTO.fromSerializable(robotRequest.result).toDomainObject())
+      }
+
+      robotRequest.onerror = () => {
+        reject(Error('Failed to read robots'));
+      }
+    });
   }
   update(e: Robot): Promise<Robot> {
-    throw new Error("Method not implemented.");
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(Error('NO_DATABASE'));
+        return;
+      }
+      const transaction = this.db.transaction(['robots'], 'readwrite');
+      const serializableRobot = RobotDTO.fromDomainObject(e).toSerializable();
+      const updateRequest = transaction.objectStore('robots').put(serializableRobot);
+
+      updateRequest.onsuccess = () => {
+        resolve(e)
+      }
+
+      updateRequest.onerror = () => {
+        reject(Error('Failed to update robot'));
+      }
+    });
   }
   remove(id: string): Promise<undefined> {
-    throw new Error("Method not implemented.");
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(Error('NO_DATABASE'));
+        return;
+      }
+      const transaction = this.db.transaction(['robots'], 'readwrite');
+      const updateRequest = transaction.objectStore('robots').delete(id);
+
+      updateRequest.onsuccess = () => {
+        resolve(undefined);
+      }
+
+      updateRequest.onerror = () => {
+        reject(Error('Failed to delete robot'));
+      }
+    });
   }
 }
 
