@@ -1,4 +1,4 @@
-import { INIT_ID } from "./constants";
+import { nanoid } from 'nanoid'
 import Tag from "./Tag";
 
 class Robot {
@@ -29,7 +29,7 @@ class Robot {
     tags,
     avatar,
   }: { id?: string; name: string; purpose: string; tags?: Tag[]; avatar?: string; }) {
-    return new Robot(id ?? INIT_ID, name, purpose, tags, avatar);
+    return new Robot(id ?? nanoid(), name, purpose, tags, avatar);
   }
 }
 

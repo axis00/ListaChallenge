@@ -1,4 +1,4 @@
-import { INIT_ID } from "./constants";
+import { nanoid } from "nanoid";
 
 class Tag {
   public id: string;
@@ -10,7 +10,7 @@ class Tag {
   }
 
   static create({ id, name }: { id?: string; name: string }) {
-    return new Tag(id ?? INIT_ID, name);
+    return new Tag(id ?? nanoid(), name);
   }
 }
 
